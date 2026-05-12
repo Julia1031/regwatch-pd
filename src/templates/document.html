@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block title %}{{ (doc.name or 'Документ') | truncate(60, True, '…') }} — RegWatch{% endblock %}
+
+{% block extra_style %}
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+.back-link:hover { color: var(--accent); text-decoration: none; }
+
+.doc-header {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 22px 24px;
+  margin-bottom: 20px;
+}
+.doc-header__meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.doc-header__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.45;
+  margin-bottom: 8px;
+}
+.doc-header__subtitle {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+.doc-header__info {
+  font-size: 0.78rem;
+  color: var(--text-faint);
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.section {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 22px 24px;
+  margin-bottom: 16px;
+}
+.section__title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+
+.analysis-body {
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: var(--text);
+}
+.analysis-body strong { color: var(--accent); }
+
+.no-analysis {
+  background: var(--surface);
+  border: 1.5px dashed var(--border);
+  border-radius: 8px;
+  padding: 32px 24px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.no-analysis p { color: var(--text-faint); margin-bottom: 14px; font-size: 0.875rem; }
+
+.fulltext-details {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.fulltext-details summary {
+  padding: 12px 18px;
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  user-select: none;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.fulltext-details summary::-webkit-details-marker { display: none; }
+.fulltext-details summary::after { content: '▾'; color: var(--text-faint); }
+.fulltext-details[open] summary::after { content: '▴'; }
+.fulltext-details summary:hover { background: var(--border); }
+.fulltext-body {
+  max-height: 420px;
+  overflow-y: auto;
+  padding: 16px 18px;
+  background: var(--bg);
+}
+.fulltext-body pre {
+  font-family: inherit;
+  font-size: 0.82rem;
+  white-space: pre-wrap;
+  color: #333;
+  line-height: 1.65;
+}
+
+.page-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+{% endblock %}
+
+{% block content %}
+<a href="/" class="back-link">← Все документы</a>
+
+{% if request.query_params.get('status') == 'analyzing' %}
+<div class="alert alert-info">
+  Анализ запущен. Qwen3:14b обрабатывает документ — это займёт 1–3 минуты.
+  Обновите страницу после завершения.
+</div>
+{% endif %}
+
+<!-- Document header -->
+<div class="doc-header">
+  <div class="doc-header__meta">
+    <span class="tag tag-accent">{{ block_labels.get(doc.block, doc.block or '—') }}</span>
+    {% if doc.law_branch %}
+    <span class="tag tag-neutral">{{ doc.law_branch }}</span>
+    {% endif %}
+    {% if doc.significance %}
+    <span class="stars" style="font-size:1rem">
+      {% for _ in range(doc.significance) %}★{% endfor %}{% for _ in range(5 - doc.significance) %}☆{% endfor %}
+      <span style="color:var(--text-muted);font-size:0.8rem;margin-left:4px">{{ doc.significance }}/5</span>
+    </span>
+    {% endif %}
+  </div>
+
+  <h1 class="doc-header__title">{{ doc.name or doc.complex_name or 'Без названия' }}</h1>
+
+  {% if doc.complex_name and doc.complex_name != doc.name %}
+  <div class="doc-header__subtitle">{{ doc.complex_name }}</div>
+  {% endif %}
+
+  <div class="doc-header__info">
+    {% if doc.date %}<span>📅 {{ doc.date[:10] }}</span>{% endif %}
+    <span>EO: {{ doc.eo_number }}</span>
+    {% if doc.analyzed_at %}
+    <span>Анализ: {{ doc.analyzed_at.strftime('%d.%m.%Y %H:%M') }}</span>
+    {% endif %}
+    {% if doc.full_text %}
+    <span>Текст: {{ "{:,}".format(doc.full_text | length).replace(",", " ") }} символов</span>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Analysis -->
+{% if doc.analysis %}
+<div class="section">
+  <div class="section__title">Юридический комментарий · Qwen3:14b</div>
+  <div class="analysis-body">{{ doc.analysis | format_analysis | safe }}</div>
+</div>
+{% else %}
+<div class="no-analysis">
+  <p>Документ ещё не проанализирован</p>
+  <form method="post" action="/analyze/{{ doc.id }}">
+    <button type="submit" class="btn btn-primary">
+      Запустить анализ (Qwen3:14b)
+    </button>
+  </form>
+</div>
+{% endif %}
+
+<!-- Full text -->
+{% if doc.full_text %}
+<details class="fulltext-details">
+  <summary>Полный текст документа</summary>
+  <div class="fulltext-body">
+    <pre>{{ doc.full_text[:15000] }}{% if doc.full_text | length > 15000 %}
+
+… [показано 15 000 из {{ "{:,}".format(doc.full_text | length).replace(",", " ") }} символов]{% endif %}</pre>
+  </div>
+</details>
+{% else %}
+<div class="section" style="color:var(--text-faint);font-size:0.85rem;text-align:center;">
+  Текст документа не извлечён (PDF недоступен или не содержит текста)
+</div>
+{% endif %}
+
+<!-- Actions -->
+<div class="page-actions">
+  <a href="/" class="btn btn-ghost">← Все документы</a>
+  {% if doc.analysis %}
+  <form method="post" action="/analyze/{{ doc.id }}">
+    <button type="submit" class="btn btn-outline">Повторный анализ</button>
+  </form>
+  {% else %}
+  <form method="post" action="/analyze/{{ doc.id }}">
+    <button type="submit" class="btn btn-primary">Запустить анализ</button>
+  </form>
+  {% endif %}
+  {% if doc.eo_number %}
+  <a href="https://publication.pravo.gov.ru/file/pdf?eoNumber={{ doc.eo_number }}"
+     target="_blank" rel="noopener" class="btn btn-ghost">Скачать PDF ↗</a>
+  {% endif %}
+</div>
+{% endblock %}
