@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from pathlib import Path
 
 import fitz  # PyMuPDF
 import httpx
@@ -9,6 +10,9 @@ from .config import settings
 from .database import AsyncSessionLocal, Document
 
 logger = logging.getLogger(__name__)
+
+PDF_DIR = Path(__file__).parent.parent / "downloaded_pdfs"
+PDF_DIR.mkdir(exist_ok=True)
 
 
 async def fetch_documents_for_block(block: str, period_date: str = None) -> list[dict]:
@@ -63,6 +67,11 @@ async def fetch_documents_for_block(block: str, period_date: str = None) -> list
 
 
 async def download_pdf(eo_number: str) -> bytes | None:
+    pdf_path = PDF_DIR / f"{eo_number}.pdf"
+
+    if pdf_path.exists():
+        return pdf_path.read_bytes()
+
     params = {"eoNumber": eo_number}
     async with httpx.AsyncClient(
         timeout=settings.PDF_DOWNLOAD_TIMEOUT, follow_redirects=True
@@ -70,6 +79,8 @@ async def download_pdf(eo_number: str) -> bytes | None:
         try:
             resp = await client.get(settings.PRAVO_PDF_URL, params=params)
             if resp.status_code == 200 and len(resp.content) > 100:
+                pdf_path.write_bytes(resp.content)
+                logger.info("PDF saved: %s", pdf_path.name)
                 return resp.content
         except Exception as e:
             logger.error("PDF download error for %s: %s", eo_number, e)
@@ -215,4 +226,34 @@ async def collect_today(target_date: str = None) -> dict:
             await asyncio.sleep(settings.REQUEST_DELAY)
 
     logger.info("Collection complete: %s", stats)
+    return stats
+
+
+async def backfill_pdfs() -> dict:
+    """Download missing PDFs for all documents already in DB."""
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(Document.eo_number))
+        eo_numbers = [row[0] for row in result.fetchall() if row[0]]
+
+    stats = {"downloaded": 0, "already_exists": 0, "failed": 0}
+    total = len(eo_numbers)
+    logger.info("backfill_pdfs: %d documents to check", total)
+
+    for i, eo_number in enumerate(eo_numbers, 1):
+        pdf_path = PDF_DIR / f"{eo_number}.pdf"
+        if pdf_path.exists():
+            stats["already_exists"] += 1
+            logger.info("backfill_pdfs: [%d/%d] already exists — %s", i, total, eo_number)
+            continue
+
+        logger.info("backfill_pdfs: [%d/%d] downloading %s", i, total, eo_number)
+        pdf_bytes = await download_pdf(eo_number)
+        if pdf_bytes:
+            stats["downloaded"] += 1
+        else:
+            stats["failed"] += 1
+
+        await asyncio.sleep(settings.REQUEST_DELAY)
+
+    logger.info("backfill_pdfs complete: %s", stats)
     return stats

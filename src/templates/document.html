@@ -210,9 +210,8 @@
     <button type="submit" class="btn btn-primary">Запустить анализ</button>
   </form>
   {% endif %}
-  {% if doc.eo_number %}
-  <a href="https://publication.pravo.gov.ru/file/pdf?eoNumber={{ doc.eo_number }}"
-     target="_blank" rel="noopener" class="btn btn-ghost">Скачать PDF ↗</a>
+  {% if pdf_exists %}
+  <a href="/pdf/{{ doc.eo_number }}.pdf" download class="btn btn-ghost">Скачать PDF ↓</a>
   {% endif %}
 </div>
 {% endblock %}

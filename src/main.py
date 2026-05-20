@@ -1,8 +1,10 @@
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from .database import init_db
 from .routes import router
@@ -39,5 +41,9 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+_pdf_dir = Path(__file__).parent.parent / "downloaded_pdfs"
+_pdf_dir.mkdir(exist_ok=True)
+app.mount("/pdf", StaticFiles(directory=str(_pdf_dir)), name="pdf")
 
 app.include_router(router)

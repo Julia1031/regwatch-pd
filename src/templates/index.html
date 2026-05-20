@@ -191,8 +191,7 @@
 <div class="digest">
   <div class="digest__header">
     <span class="digest__title">
-      {% if digest_source == 'last_cycle' %}Последний цикл сбора
-      {% elif digest_source == 'last_24h' %}За последние 24 часа
+      {% if digest_source in ('last_cycle', 'last_24h') %}Сегодня
       {% else %}Все документы в базе{% endif %}
     </span>
     {% if cycle_time %}

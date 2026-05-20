@@ -15,6 +15,8 @@ from .database import Document, get_db
 from .scraper import collect_today
 from .tasks import collect_and_analyze
 
+PDF_DIR = Path(__file__).parent.parent / "downloaded_pdfs"
+
 router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
@@ -142,12 +144,15 @@ async def document_detail(
             status_code=404,
         )
 
+    pdf_exists = (PDF_DIR / f"{doc.eo_number}.pdf").exists() if doc.eo_number else False
+
     return templates.TemplateResponse(
         request=request,
         name="document.html",
         context={
             "doc": doc,
             "block_labels": BLOCK_LABELS,
+            "pdf_exists": pdf_exists,
         },
     )
 
