@@ -6,7 +6,7 @@ from fastapi import FastAPI
 
 from .database import init_db
 from .routes import router
-from .scraper import collect_today
+from .tasks import collect_and_analyze, restore_state_from_db
 
 logging.basicConfig(
     level=logging.INFO,
@@ -21,10 +21,11 @@ scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
 async def lifespan(app: FastAPI):
     await init_db()
     logger.info("Database initialised")
+    await restore_state_from_db()
 
-    scheduler.add_job(collect_today, "cron", hour=9, minute=0, id="daily_collect")
+    scheduler.add_job(collect_and_analyze, "cron", hour=9, minute=0, id="daily_collect")
     scheduler.start()
-    logger.info("Scheduler started — daily collection at 09:00 MSK")
+    logger.info("Scheduler started — daily collect+analyze at 09:00 MSK")
 
     yield
 

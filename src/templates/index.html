@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}RegWatch — Документы{% endblock %}
+{% block title %}RegWatch — Дайджест{% endblock %}
 
 {% block extra_style %}
 .page-header {
@@ -12,90 +12,129 @@
 }
 .page-header h1 { font-size: 1.1rem; color: var(--text-muted); font-weight: 500; }
 .page-header h1 strong { color: var(--text); }
+.page-header__actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
-.filters {
+/* ── Digest block ── */
+.digest {
   background: var(--surface);
   border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
   border-radius: 8px;
-  padding: 16px 20px;
+  padding: 20px 24px;
   margin-bottom: 24px;
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  align-items: flex-end;
 }
-.filter-group label {
-  display: block;
-  font-size: 0.75rem;
+.digest__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.digest__title { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+.digest__date { font-size: 0.82rem; color: var(--text-muted); }
+.digest__metrics {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.digest__metric { display: flex; flex-direction: column; gap: 3px; }
+.digest__metric-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+.digest__metric-label {
+  font-size: 0.68rem;
   color: var(--text-muted);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
+}
+.digest__top {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+}
+.digest__top-label {
+  font-size: 0.68rem;
+  color: var(--text-faint);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   margin-bottom: 5px;
 }
-.filter-group input,
-.filter-group select {
-  border: 1.5px solid var(--border);
-  border-radius: 6px;
-  padding: 7px 11px;
-  font-size: 0.875rem;
-  font-family: inherit;
-  background: var(--bg);
-  color: var(--text);
-  outline: none;
-  transition: border-color 0.15s;
-}
-.filter-group input:focus,
-.filter-group select:focus { border-color: var(--accent); }
-
-.doc-list { display: grid; gap: 10px; }
-
-.doc-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 16px 20px;
+.digest__top-content {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-.doc-card:hover {
-  border-color: #ccc;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-.doc-card__body { flex: 1; min-width: 0; }
-.doc-card__meta {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
   align-items: center;
-  margin-bottom: 6px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
-.doc-card__title {
-  font-weight: 600;
-  font-size: 0.92rem;
-  color: var(--text);
-  line-height: 1.4;
-  display: block;
-  margin-bottom: 4px;
-}
-.doc-card__title:hover { color: var(--accent); text-decoration: none; }
-.doc-card__date { font-size: 0.78rem; color: var(--text-faint); margin-bottom: 6px; }
-.doc-card__excerpt {
-  font-size: 0.82rem;
-  color: var(--text-muted);
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-.doc-card__actions {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.digest__top-sig {
+  font-size: 0.78rem;
+  color: var(--accent);
+  white-space: nowrap;
   flex-shrink: 0;
+}
+.digest__top-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.digest__top-name:hover { color: var(--accent); }
+
+/* ── Top-5 block ── */
+.top5 { margin-bottom: 28px; }
+.top5__heading {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border);
+}
+.top5__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.top5__item:last-child { border-bottom: none; }
+.top5__rank {
+  width: 22px;
+  font-size: 0.78rem;
+  color: var(--text-faint);
+  font-weight: 700;
+  flex-shrink: 0;
+  text-align: center;
+}
+.top5__sig {
+  font-size: 0.78rem;
+  color: var(--accent);
+  flex-shrink: 0;
+  width: 60px;
+}
+.top5__body { flex: 1; min-width: 0; }
+.top5__name {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text);
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.top5__name:hover { color: var(--accent); text-decoration: none; }
+.top5__branch {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  margin-top: 2px;
 }
 
 .empty-state {
@@ -105,94 +144,122 @@
 }
 .empty-state__icon { font-size: 2.5rem; margin-bottom: 14px; }
 .empty-state__text { font-size: 0.95rem; }
+
+.all-docs-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 14px;
+  background: var(--surface);
+  transition: border-color 0.15s, color 0.15s;
+}
+.all-docs-link:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
 {% endblock %}
 
 {% block content %}
 <div class="page-header">
-  <h1>Документов: <strong>{{ total }}</strong></h1>
-  <form method="post" action="/collect">
-    <button type="submit" class="btn btn-primary">↓ Собрать новые документы</button>
-  </form>
+  <h1>Дайджест</h1>
+  <div class="page-header__actions">
+    <form method="post" action="/collect">
+      <button type="submit" class="btn btn-ghost">↓ Собрать документы</button>
+    </form>
+    <form method="post" action="/collect-and-analyze">
+      <button type="submit" class="btn btn-primary">⚡ Собрать и проанализировать всё</button>
+    </form>
+    <a href="/all" class="all-docs-link">Все документы →</a>
+  </div>
 </div>
 
 {% if request.query_params.get('status') == 'collecting' %}
 <div class="alert alert-info">
-  Сбор документов запущен в фоне — это займёт несколько минут.
-  Обновите страницу позже.
+  Сбор документов запущен в фоне — это займёт несколько минут. Обновите страницу позже.
+</div>
+{% elif request.query_params.get('status') == 'analyzing' %}
+<div class="alert alert-info">
+  Сбор и анализ запущены в фоне — процесс займёт несколько минут (зависит от количества документов). Обновите страницу позже.
 </div>
 {% endif %}
 
-<!-- Filters -->
-<form method="get" class="filters">
-  <div class="filter-group">
-    <label>Дата</label>
-    <input type="date" name="date" value="{{ selected_date }}">
+{% if digest_total > 0 %}
+
+<!-- ── Digest metrics ── -->
+{% set cycle_time = get_cycle_time() %}
+<div class="digest">
+  <div class="digest__header">
+    <span class="digest__title">
+      {% if digest_source == 'last_cycle' %}Последний цикл сбора
+      {% elif digest_source == 'last_24h' %}За последние 24 часа
+      {% else %}Все документы в базе{% endif %}
+    </span>
+    {% if cycle_time %}
+    <span class="digest__date">Обновлено {{ cycle_time.strftime('%d.%m.%Y %H:%M') }}</span>
+    {% endif %}
   </div>
-  <div class="filter-group">
-    <label>Блок</label>
-    <select name="block">
-      <option value="">Все блоки</option>
-      {% for key, label in block_labels.items() %}
-      <option value="{{ key }}" {% if selected_block == key %}selected{% endif %}>{{ label }}</option>
-      {% endfor %}
-    </select>
-  </div>
-  <button type="submit" class="btn btn-outline">Применить</button>
-  <a href="/" class="btn btn-ghost">Сбросить</a>
-</form>
 
-<!-- Document list -->
-{% if documents %}
-<div class="doc-list">
-  {% for doc in documents %}
-  <div class="doc-card">
-    <div class="doc-card__body">
-      <div class="doc-card__meta">
-        <span class="tag tag-accent">{{ block_labels.get(doc.block, doc.block or '—') }}</span>
-        {% if doc.law_branch %}
-        <span class="tag tag-neutral">{{ doc.law_branch }}</span>
-        {% endif %}
-        {% if doc.significance %}
-        <span class="stars">
-          {% for _ in range(doc.significance) %}★{% endfor %}{% for _ in range(5 - doc.significance) %}☆{% endfor %}
-        </span>
-        {% endif %}
-        {% if not doc.analysis %}
-        <span class="tag" style="background:#fff3cd;color:#856404;">Не проанализирован</span>
-        {% endif %}
-      </div>
-
-      <a href="/document/{{ doc.id }}" class="doc-card__title">
-        {{ (doc.name or doc.complex_name or 'Без названия') | truncate(160, True, '…') }}
-      </a>
-
-      {% if doc.date %}
-      <div class="doc-card__date">{{ doc.date[:10] }}</div>
-      {% endif %}
-
-      {% if doc.analysis %}
-      <div class="doc-card__excerpt">{{ doc.analysis | striptags | truncate(200, True, '…') }}</div>
-      {% endif %}
+  <div class="digest__metrics">
+    <div class="digest__metric">
+      <span class="digest__metric-value">{{ digest_total }}</span>
+      <span class="digest__metric-label">Документов</span>
     </div>
+    <div class="digest__metric">
+      <span class="digest__metric-value">{{ digest_analyzed }}</span>
+      <span class="digest__metric-label">Проанализировано</span>
+    </div>
+    <div class="digest__metric">
+      <span class="digest__metric-value" style="color:var(--text-muted)">{{ digest_total - digest_analyzed }}</span>
+      <span class="digest__metric-label">Ожидают анализа</span>
+    </div>
+  </div>
 
-    <div class="doc-card__actions">
-      <a href="/document/{{ doc.id }}" class="btn btn-outline">Открыть</a>
-      {% if not doc.analysis %}
-      <form method="post" action="/analyze/{{ doc.id }}">
-        <button type="submit" class="btn btn-ghost" style="width:100%">Анализ</button>
-      </form>
+  {% if top_doc %}
+  <div class="digest__top">
+    <div class="digest__top-label">Самый значимый документ</div>
+    <div class="digest__top-content">
+      <span class="digest__top-sig">
+        {% for _ in range(top_doc.significance) %}★{% endfor %}{% for _ in range(5 - top_doc.significance) %}☆{% endfor %}
+        {{ top_doc.significance }}/5
+      </span>
+      <a href="/document/{{ top_doc.id }}" class="digest__top-name">
+        {{ (top_doc.name or top_doc.complex_name or 'Без названия') | truncate(140, True, '…') }}
+      </a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ── Top-5 by significance ── -->
+{% if top5 %}
+<div class="top5">
+  <div class="top5__heading">Топ-5 значимых документов</div>
+  {% for doc in top5 %}
+  <div class="top5__item">
+    <span class="top5__rank">{{ loop.index }}</span>
+    <span class="top5__sig">
+      {% for _ in range(doc.significance) %}★{% endfor %}{% for _ in range(5 - doc.significance) %}☆{% endfor %}
+    </span>
+    <div class="top5__body">
+      <a href="/document/{{ doc.id }}" class="top5__name">
+        {{ (doc.name or doc.complex_name or 'Без названия') | truncate(130, True, '…') }}
+      </a>
+      {% if doc.law_branch %}
+      <div class="top5__branch">{{ doc.law_branch }}</div>
       {% endif %}
     </div>
   </div>
   {% endfor %}
 </div>
+{% endif %}
 
 {% else %}
 <div class="empty-state">
   <div class="empty-state__icon">📋</div>
   <div class="empty-state__text">
-    Документы не найдены.<br>
-    Нажмите <strong>«Собрать новые документы»</strong> для загрузки актуальных актов.
+    Данные ещё не собирались, попробуйте позже.<br>
+    Или нажмите <strong>«Собрать и проанализировать всё»</strong> прямо сейчас.
   </div>
 </div>
 {% endif %}
