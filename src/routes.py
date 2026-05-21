@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from . import state
+from . import notifier, state
 from .analyzer import analyze_document
 from .database import Document, get_db
 from .scraper import collect_today
@@ -173,3 +173,9 @@ async def collect_analyze_all(background_tasks: BackgroundTasks):
 async def analyze(doc_id: int, background_tasks: BackgroundTasks):
     background_tasks.add_task(analyze_document, doc_id)
     return RedirectResponse(f"/document/{doc_id}?status=analyzing", status_code=303)
+
+
+@router.post("/test-telegram")
+async def test_telegram():
+    await notifier.send_telegram("Тест от RegWatch ✅")
+    return {"status": "sent"}

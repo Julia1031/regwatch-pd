@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 from sqlalchemy import func, select
 
-from . import state
+from . import notifier, state
 from .analyzer import analyze_document
 from .database import AsyncSessionLocal, Document
 from .scraper import collect_today
@@ -45,6 +45,14 @@ async def collect_and_analyze() -> dict:
             select(Document.id).where(Document.created_at >= cycle_start)
         )
         state.last_cycle_doc_ids = [row[0] for row in result.fetchall()]
+
+    if state.last_cycle_doc_ids:
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(
+                select(Document).where(Document.id.in_(state.last_cycle_doc_ids))
+            )
+            analyzed_docs = result.scalars().all()
+        await notifier.send_daily_digest(analyzed_docs)
 
     return {"collected": collect_stats, "analyzed": analyzed, "pending": total}
 
